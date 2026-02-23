@@ -1,0 +1,96 @@
+# Default Configuration for Quant-FINN Training
+# =============================================
+
+# Problem Settings
+problem:
+  type: "black_scholes"  # Options: black_scholes, heston, garch
+  option_type: "call"    # Options: call, put
+
+  # Black-Scholes Parameters
+  K: 100.0               # Strike price
+  T: 1.0                 # Time to expiration (years)
+  r: 0.05                # Risk-free rate
+  sigma: 0.2             # Volatility
+
+  # Domain bounds
+  S_min: 50.0
+  S_max: 150.0
+  t_min: 0.0
+  t_max: 1.0
+
+# Network Architecture
+network:
+  type: "pinn_base"      # Options: pinn_base, quant_finn
+  hidden_dim: 64
+  n_layers: 4
+  activation: "tanh"     # Options: tanh, swish, gelu
+  use_fourier: true
+  n_fourier_features: 10
+  fourier_scale: 1.0
+  use_residual: false
+  dropout: 0.0
+
+# Training Settings
+training:
+  n_epochs: 1000
+  lr: 0.001
+  batch_size: null       # null = full batch
+
+  # Collocation sampling
+  n_collocation: 1000
+  n_boundary: 200
+  n_terminal: 200
+  sampler: "lhs"         # Options: uniform, lhs, importance, adaptive
+  adaptive_sampling: false
+
+  # Loss weighting
+  use_annealing: true
+  warmup_epochs: 100
+  loss_weights:
+    pde: 1.0
+    terminal: 10.0
+    lower_bc: 10.0
+    upper_bc: 10.0
+    data: 1.0
+
+  # Optimization
+  optimizer: "adam"      # Options: adam, adamw, sgd
+  scheduler: "plateau"   # Options: plateau, cosine, step
+  scheduler_patience: 50
+  scheduler_factor: 0.5
+  max_grad_norm: 1.0
+
+  # L-BFGS refinement
+  use_lbfgs: true
+  lbfgs_iterations: 500
+
+# Validation
+validation:
+  validate_every: 100
+  pde_threshold: 0.001
+  greeks_tolerance: 0.05
+  boundary_tolerance: 0.01
+
+# Logging
+logging:
+  log_every: 100
+  save_checkpoints: true
+  checkpoint_every: 500
+  checkpoint_dir: "checkpoints"
+  tensorboard: false
+
+# Hardware
+hardware:
+  device: "auto"         # Options: auto, cpu, cuda, mps
+  seed: 42
+
+# Quant-FINN Specific (only used if network.type == "quant_finn")
+quant_finn:
+  n_assets: 10
+  n_factors: 3
+  seq_len: 60
+  n_regimes: 3
+  use_garch: true
+  use_factor_model: true
+  use_portfolio_opt: true
+  risk_aversion: 1.0
